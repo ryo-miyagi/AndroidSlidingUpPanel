@@ -24,4 +24,15 @@ android {
     }
 }
 
-//apply from: '../maven_push.gradle'
+def repos = new File(rootDir, "repository")
+apply plugin: 'maven'
+uploadArchives {
+    repositories {
+        mavenDeployer {
+            repository url: "file://${repos.absolutePath}"
+            pom.version = '3.2.0'
+            pom.groupId = 'com.sothree.slidinguppanel'
+            pom.artifactId = POM_ARTIFACT_ID
+        }
+    }
+}
