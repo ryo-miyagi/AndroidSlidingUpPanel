@@ -3,33 +3,37 @@ package com.sothree.slidinguppanel.demo;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
-import android.support.v7.app.ActionBarActivity;
+import android.support.design.widget.TabLayout;
+import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentManager;
+import android.support.v4.app.FragmentPagerAdapter;
+import android.support.v4.view.ViewPager;
+import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.text.Html;
 import android.text.method.LinkMovementMethod;
 import android.util.Log;
+import android.util.TypedValue;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.View.OnClickListener;
-import android.widget.AdapterView;
-import android.widget.ArrayAdapter;
 import android.widget.Button;
-import android.widget.ListView;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.sothree.slidinguppanel.SlidingUpPanelLayout;
 import com.sothree.slidinguppanel.SlidingUpPanelLayout.PanelSlideListener;
 import com.sothree.slidinguppanel.SlidingUpPanelLayout.PanelState;
 
-import java.util.Arrays;
-import java.util.List;
-
-public class DemoActivity extends ActionBarActivity {
+public class DemoActivity extends AppCompatActivity {
     private static final String TAG = "DemoActivity";
 
     private SlidingUpPanelLayout mLayout;
+
+    private TabLayout tabs;
+    private ViewPager pager;
+    private MyPagerAdapter adapter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -38,68 +42,50 @@ public class DemoActivity extends ActionBarActivity {
 
         setSupportActionBar((Toolbar) findViewById(R.id.main_toolbar));
 
-        ListView lv = (ListView) findViewById(R.id.list);
-        lv.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+        adapter = new MyPagerAdapter(getSupportFragmentManager());
+        pager = (ViewPager) findViewById(R.id.pager);
+        pager.setOnTouchListener(new View.OnTouchListener() {
             @Override
-            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                Toast.makeText(DemoActivity.this, "onItemClick", Toast.LENGTH_SHORT).show();
+            public boolean onTouch(
+                final View v,
+                final MotionEvent event
+            ) {
+                // スワイプ操作によるページ切り替えを抑制する。
+                // SlidingUpPanelLayoutの上下スワイプ操作と被るため。
+                return true;
             }
         });
+        pager.setAdapter(adapter);
 
-        List<String> your_array_list = Arrays.asList(
-                "This",
-                "Is",
-                "An",
-                "Example",
-                "ListView",
-                "That",
-                "You",
-                "Can",
-                "Scroll",
-                ".",
-                "It",
-                "Shows",
-                "How",
-                "Any",
-                "Scrollable",
-                "View",
-                "Can",
-                "Be",
-                "Included",
-                "As",
-                "A",
-                "Child",
-                "Of",
-                "SlidingUpPanelLayout"
+        final int pageMargin = (int) TypedValue.applyDimension(
+            TypedValue.COMPLEX_UNIT_DIP,
+            4,
+            getResources()
+                .getDisplayMetrics()
         );
+        pager.setPageMargin(pageMargin);
 
-        // This is the array adapter, it takes the context of the activity as a
-        // first parameter, the type of list view as a second parameter and your
-        // array as a third parameter.
-        ArrayAdapter<String> arrayAdapter = new ArrayAdapter<String>(
-                this,
-                android.R.layout.simple_list_item_1,
-                your_array_list );
-
-        lv.setAdapter(arrayAdapter);
+        tabs = (TabLayout) findViewById(R.id.tabs);
+        tabs.setupWithViewPager(pager);
 
         mLayout = (SlidingUpPanelLayout) findViewById(R.id.sliding_layout);
         mLayout.setPanelSlideListener(new PanelSlideListener() {
             @Override
-            public void onPanelSlide(View panel, float slideOffset) {
+            public void onPanelSlide(
+                View panel,
+                float slideOffset
+            ) {
                 Log.i(TAG, "onPanelSlide, offset " + slideOffset);
             }
 
             @Override
             public void onPanelExpanded(View panel) {
                 Log.i(TAG, "onPanelExpanded");
-
             }
 
             @Override
             public void onPanelCollapsed(View panel) {
                 Log.i(TAG, "onPanelCollapsed");
-
             }
 
             @Override
@@ -150,7 +136,7 @@ public class DemoActivity extends ActionBarActivity {
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        switch (item.getItemId()){
+        switch (item.getItemId()) {
             case R.id.action_toggle: {
                 if (mLayout != null) {
                     if (mLayout.getPanelState() != PanelState.HIDDEN) {
@@ -184,10 +170,39 @@ public class DemoActivity extends ActionBarActivity {
     @Override
     public void onBackPressed() {
         if (mLayout != null &&
-                (mLayout.getPanelState() == PanelState.EXPANDED || mLayout.getPanelState() == PanelState.ANCHORED)) {
+            (mLayout.getPanelState() == PanelState.EXPANDED || mLayout.getPanelState() == PanelState.ANCHORED)) {
             mLayout.setPanelState(PanelState.COLLAPSED);
         } else {
             super.onBackPressed();
+        }
+    }
+
+    public class MyPagerAdapter extends FragmentPagerAdapter {
+
+        private final String[] TITLES = {"Categories", "Home", "Top Paid", "Top Free", "Top Grossing", "Top New Paid",
+            "Top New Free", "Trending"};
+
+        public MyPagerAdapter(FragmentManager fm) {
+            super(fm);
+        }
+
+        @Override
+        public CharSequence getPageTitle(int position) {
+            return TITLES[position];
+        }
+
+        @Override
+        public int getCount() {
+            return TITLES.length;
+        }
+
+        @Override
+        public Fragment getItem(int position) {
+            if (position == 1) {
+                return new ExampleListFragment();
+            } else {
+                return SuperAwesomeCardFragment.newInstance(position);
+            }
         }
     }
 }
