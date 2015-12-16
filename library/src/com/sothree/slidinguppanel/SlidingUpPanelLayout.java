@@ -1072,6 +1072,9 @@ public class SlidingUpPanelLayout extends ViewGroup {
                 // Approximate the scroll position based on the bottom child and the last visible item
                 return (rv.getAdapter().getItemCount() - 1) * lm.getDecoratedMeasuredHeight(lastChild) + lm.getDecoratedBottom(lastChild) - rv.getBottom();
             }
+        } else if (mScrollableView instanceof ViewGroup && ((ViewGroup) mScrollableView).getChildCount() > 0) {
+            // PATCH
+            return 1;
         } else {
             return 0;
         }
